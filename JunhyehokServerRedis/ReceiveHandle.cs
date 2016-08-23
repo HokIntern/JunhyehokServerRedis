@@ -57,7 +57,8 @@ namespace JunhyehokServerRedis
             {
                 if (client.Status == ClientHandle.State.Room)
                 {
-                    redis.LeaveRoom(client.UserId, client.RoomId);
+                    try { redis.LeaveRoom(client.UserId, client.RoomId); }
+                    catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (LeaveRoom)"); }
 
                     Room requestedRoom;
                     lock (rooms)
@@ -72,7 +73,8 @@ namespace JunhyehokServerRedis
                             if (requestedRoom.Clients.Count == 0)
                             {
                                 rooms.Remove(requestedRoom.RoomId);
-                                redis.DestroyRoom(requestedRoom.RoomId);
+                                try { redis.DestroyRoom(requestedRoom.RoomId); }
+                                catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (DestroyRoom)"); }
                             }
                         }
                     }
@@ -86,7 +88,10 @@ namespace JunhyehokServerRedis
                     clients.Remove(client.UserId);
                 }
                 if (signout && clientExists)
-                    redis.SignOut(client.UserId);
+                {
+                    try { redis.SignOut(client.UserId); }
+                    catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (Signout)"); }
+                }
                 UpdateMMF();
                 client.Status = ClientHandle.State.Offline;
             }
@@ -169,7 +174,9 @@ namespace JunhyehokServerRedis
         public Packet ResponseCreate(Packet recvPacket)
         {
             Packet response;
-            int roomId = redis.CreateRoom();
+            int roomId = -1;
+            try { roomId = redis.CreateRoom(); }
+            catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (CreateRoom)"); }
             if (-1 != roomId)
                 response = ResponseCreateSuccess(roomId);
             else
@@ -206,7 +213,8 @@ namespace JunhyehokServerRedis
             response = new Packet(returnHeader, cfRoomCreateRespBytes);
 
             //send JOIN to Backend
-            redis.JoinRoom(client.UserId, client.RoomId);
+            try { redis.JoinRoom(client.UserId, client.RoomId); }
+            catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (JoinRoom)"); }
 
             updateMMF = true;
             return response;
@@ -241,7 +249,8 @@ namespace JunhyehokServerRedis
                     client.Status = ClientHandle.State.Room;
                     client.RoomId = roomId;
 
-                    redis.JoinRoom(client.UserId, roomId);
+                    try { redis.JoinRoom(client.UserId, roomId); }
+                    catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (JoinRoom)"); }
                 }
             }
 
@@ -343,9 +352,10 @@ namespace JunhyehokServerRedis
                     else
                     {
                         requestedRoom.RemoveClient(client);
+                        try { redis.LeaveRoom(client.UserId, client.RoomId); }
+                        catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (LeaveRoom)"); }
                         client.RoomId = 0;
                         client.Status = ClientHandle.State.Lobby;
-                        redis.LeaveRoom(client.UserId, client.RoomId);
 
                         //destroy room if no one is in the room
                         if (requestedRoom.Clients.Count == 0)
@@ -353,7 +363,8 @@ namespace JunhyehokServerRedis
                             rooms.Remove(requestedRoom.RoomId);
 
                             //send destroy room to backend
-                            redis.DestroyRoom(requestedRoom.RoomId);
+                            try { redis.DestroyRoom(requestedRoom.RoomId); }
+                            catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (DestroyRoom)"); }
                         }
 
                         returnHeader = new Header(Code.LEAVE_ROOM_SUCCESS, 0);
@@ -373,7 +384,9 @@ namespace JunhyehokServerRedis
         {
             Packet response;
 
-            byte[] listBytes = redis.GetRoomList();
+            byte[] listBytes = { };
+            try { listBytes = redis.GetRoomList(); }
+            catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (GetRoomList)"); }
             response = new Packet(new Header(Code.ROOM_LIST_SUCCESS, (ushort)listBytes.Length), listBytes);
 
             return response;
@@ -387,7 +400,8 @@ namespace JunhyehokServerRedis
 
             client.ChatCount++;
             //This send is to notify backend to increment chat count
-            redis.MSG(client.UserId);
+            try { redis.MSG(client.UserId); }
+            catch (Exception) { Console.WriteLine("ERROR: Redis operation failed (MSG)"); }
 
             lock (rooms)
             {

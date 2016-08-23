@@ -68,6 +68,11 @@ namespace JunhyehokServerRedis
             try { authInfo = System.IO.File.ReadAllText("backend.conf"); }
             catch (Exception e) { Console.WriteLine("\n" + e.Message); Environment.Exit(0); }
             Socket authSocket = Connect(authInfo);
+            if (!authSocket.Connected)
+            {
+                Console.ReadLine();
+                Environment.Exit(0);
+            }
             ClientHandle auth = new ClientHandle(authSocket);
             AdvertiseToBackend(auth, clientPort);
             auth.StartSequence();
