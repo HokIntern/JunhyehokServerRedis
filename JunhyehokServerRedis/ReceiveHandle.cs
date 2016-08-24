@@ -310,7 +310,7 @@ namespace JunhyehokServerRedis
                 lock (clients)
                     clients.Remove(clientToSend.UserId);
                     */
-                RemoveClient(client, true);
+                RemoveClient(clientToSend, true);
                 updateMMF = true;
                 //clientToSend.CloseConnection();
 
