@@ -34,8 +34,8 @@ namespace JunhyehokServerRedis
         public bool SignOut(long userid)
         {
             string username = redis.GetUserName(userid);
-            redis.DelUser(username);
-            redis.DelUserList(username);
+            //redis.DelUser(username);
+            //redis.DelUserList(username);
             return redis.DelUserLogin(feName, userid);
         }
 
