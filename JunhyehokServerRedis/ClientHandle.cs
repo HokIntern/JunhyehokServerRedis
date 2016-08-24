@@ -19,7 +19,7 @@ namespace JunhyehokServerRedis
         Socket so;
         int bytecount;
         int heartbeatMiss = 0;
-        public int initFailCounter = 0;
+        int initFailCounter = 0;
 
         private char[] cookieChar;
         private string cookie;
@@ -87,10 +87,15 @@ namespace JunhyehokServerRedis
                 }
 
                 // if Initialize_fail, it means the user came with a bad cookie
-                if (respPacket.header.code == Code.INITIALIZE_FAIL && initFailCounter == 5)
+                if (respPacket.header.code == Code.INITIALIZE_FAIL)
                 {
-                    doSignout = true;
-                    break; //close socket connection
+                    if (initFailCounter == 5)
+                    {
+                        doSignout = true;
+                        break; //close socket connection
+                    }
+                    else
+                        initFailCounter++;
                 }
                 else if (respPacket.header.code == Code.DELETE_USER_SUCCESS || respPacket.header.code == Code.SIGNOUT)
                 {
@@ -98,6 +103,8 @@ namespace JunhyehokServerRedis
                     doSignout = false;
                     break;
                 }
+                else
+                    initFailCounter = 0;
 
                 //=======================Check Connection=======================
                 if (!isConnected())
