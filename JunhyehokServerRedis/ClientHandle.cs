@@ -176,7 +176,8 @@ namespace JunhyehokServerRedis
                 try
                 {
                     //so.ReceiveTimeout = 3000000;
-                    so.ReceiveTimeout = 20000;
+                    //so.ReceiveTimeout = 20000;
+                    so.ReceiveTimeout = 3000;
                     bytecount = await Task.Run(() => so.Receive(bytes));
 
                     //assumes that the line above(so.Receive) will throw exception 

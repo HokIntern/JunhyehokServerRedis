@@ -29,14 +29,14 @@ namespace JunhyehokServerRedis
             });
             feName = redis.GetFEName(feAddress);
         }
-       
+
         //SIGNOUT
         public bool SignOut(long userid)
         {
             string username = redis.GetUserName(userid);
             redis.DelUser(username);
             redis.DelUserList(username);
-            return redis.SetUserLogin(feName, userid, false);
+            return redis.DelUserLogin(feName, userid);
         }
 
         //ROOM_LIST = 400;
